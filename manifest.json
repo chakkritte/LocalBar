@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "LocalBar",
+  "version": "2.1",
+  "description": "LocalBar — AI Side-Bar & Browser Agent สไตล์ Claude ควบคุมหน้าเว็บ อ่านข้อมูล และกรอกฟอร์มอัตโนมัติด้วย Ollama (Local 100%)",
+  "permissions": [
+    "sidePanel",
+    "activeTab",
+    "tabs",
+    "scripting",
+    "storage",
+    "debugger",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": [
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open LocalBar"
+  }
+}

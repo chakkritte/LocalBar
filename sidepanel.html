@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalBar</title>
+  <style>
+    :root {
+      --bg-main: #faf9f5;
+      --bg-card: #ffffff;
+      --bg-user: #f0eee6;
+      --border: #e5e2d9;
+      --text-main: #1f1e1d;
+      --text-muted: #6e6b65;
+      --accent: #d97757;
+      --accent-hover: #c46547;
+      --accent-soft: #fdf3ef;
+      --success: #2e7d32;
+      --error: #c62828;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 13.5px;
+    }
+
+    /* Header & Model Selector */
+    header {
+      padding: 10px 12px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #bbb;
+      display: inline-block;
+    }
+    .status-dot.online { background: #2e7d32; }
+    .status-dot.offline { background: #c62828; }
+
+    .header-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover {
+      background: var(--bg-user);
+      color: var(--text-main);
+    }
+
+    .model-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .model-bar label {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    #model-select {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 12.5px;
+      outline: none;
+      cursor: pointer;
+    }
+    #model-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Chrome Dev / Debugger & Auto/Manual Mode Bar */
+    .dev-mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 7px 12px;
+      background: #f3f1ea;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.2s ease;
+      flex-wrap: wrap;
+    }
+    .dev-mode-bar.active {
+      background: #1f1d1b;
+      color: #fff;
+      border-bottom-color: var(--accent);
+    }
+
+    .dev-mode-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .dev-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      background: #ddd9ce;
+      color: #444;
+    }
+    .dev-mode-bar.active .dev-badge {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .dev-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Auto / Manual Segmented Switch */
+    .mode-switch {
+      display: inline-flex;
+      background: #e5e2d9;
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .dev-mode-bar.active .mode-switch {
+      background: #33302c;
+    }
+    .mode-option {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .dev-mode-bar.active .mode-option {
+      color: #b8b3aa;
+    }
+    .mode-option.selected {
+      background: #fff;
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .dev-mode-bar.active .mode-option.selected {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .dev-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-main);
+      transition: all 0.15s;
+    }
+    .dev-btn:hover {
+      border-color: var(--accent);
+    }
+    .dev-mode-bar.active .dev-btn.toggle-dev {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .dev-mode-bar.active .dev-btn.inspect-btn {
+      background: #2f2c29;
+      color: #f5f2eb;
+      border-color: #4a4540;
+    }
+
+    /* Quick Actions Bar */
+    .quick-bar {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      overflow-x: auto;
+      background: var(--bg-main);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chip-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .chip-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Chat Box */
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 20px;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+    .empty-state h3 {
+      margin: 0 0 6px 0;
+      color: var(--text-main);
+      font-size: 15px;
+    }
+
+    .msg {
+      padding: 10px 12px;
+      border-radius: 10px;
+      max-width: 92%;
+      line-height: 1.55;
+      word-wrap: break-word;
+      font-size: 13.5px;
+    }
+
+    .msg.user {
+      background: var(--bg-user);
+      align-self: flex-end;
+      border-bottom-right-radius: 3px;
+      white-space: pre-wrap;
+    }
+
+    .msg.ai {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      border-bottom-left-radius: 3px;
+      width: 94%;
+    }
+
+    /* Markdown Rendered Styles */
+    .md-body {
+      line-height: 1.55;
+      color: var(--text-main);
+    }
+    .md-body > *:first-child { margin-top: 0; }
+    .md-body > *:last-child { margin-bottom: 0; }
+    .md-body p {
+      margin: 0 0 8px 0;
+    }
+    .md-body h1, .md-body h2, .md-body h3, .md-body h4 {
+      margin: 10px 0 6px 0;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #141413;
+    }
+    .md-body h1 { font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    .md-body h2 { font-size: 15px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body h4 { font-size: 13.5px; }
+    .md-body ul, .md-body ol {
+      margin: 4px 0 8px 0;
+      padding-left: 20px;
+    }
+    .md-body li {
+      margin-bottom: 3px;
+    }
+    .md-body blockquote {
+      margin: 6px 0;
+      padding: 6px 10px;
+      border-left: 3px solid var(--accent);
+      background: var(--bg-main);
+      color: var(--text-muted);
+      border-radius: 0 6px 6px 0;
+    }
+    .md-body code {
+      background: #f2efe8;
+      color: #b54522;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    .md-body pre {
+      background: #1e1e1e;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 7px;
+      overflow-x: auto;
+      font-size: 12px;
+      margin: 8px 0;
+      position: relative;
+    }
+    .md-body pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: 12px;
+    }
+    .md-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+    }
+    .md-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 12.5px;
+    }
+    .md-body th, .md-body td {
+      border: 1px solid var(--border);
+      padding: 5px 8px;
+      text-align: left;
+    }
+    .md-body th {
+      background: var(--bg-user);
+      font-weight: 600;
+    }
+    .md-body a {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* Action Card (Auto Execution & Manual Approval) */
+    .action-card {
+      margin-top: 10px;
+      padding: 9px 11px;
+      background: var(--accent-soft);
+      border: 1px solid #f0c9ba;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .action-card.pending {
+      background: #fff9f0;
+      border-color: #f3c68f;
+    }
+
+    .action-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+      gap: 6px;
+    }
+
+    .action-card-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .run-actions-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .run-actions-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .action-item {
+      padding: 4px 0;
+      border-top: 1px dashed #edd3c8;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-badge {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #fff;
+      border: 1px solid #e5b8a6;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Controls Footer */
+    #controls {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toggles-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-label {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-label input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      background: var(--bg-main);
+      color: var(--text-main);
+      outline: none;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    button.primary-btn {
+      padding: 10px 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    button.primary-btn:hover {
+      background: var(--accent-hover);
+    }
+    button.primary-btn.stop {
+      background: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <span id="status-dot" class="status-dot" title="สถานะการเชื่อมต่อ Ollama"></span>
+        <span>LocalBar</span>
+      </div>
+      <div class="header-actions">
+        <button id="refresh-models-btn" class="icon-btn" title="รีเฟรชรายชื่อโมเดล">🔄 โมเดล</button>
+        <button id="clear-chat-btn" class="icon-btn" title="ล้างประวัติแชท">🗑️ ล้างแชท</button>
+      </div>
+    </div>
+    <div class="model-bar">
+      <label for="model-select">Model:</label>
+      <select id="model-select">
+        <option value="">กำลังโหลดรายชื่อโมเดล...</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- แถบควบคุมโหมด Auto/Manual + Chrome Dev / Debugger -->
+  <div id="dev-mode-bar" class="dev-mode-bar">
+    <div class="dev-mode-info">
+      <span id="dev-badge" class="dev-badge">IDLE</span>
+      <div class="mode-switch" title="เลือกโหมดการทำงานของ AI: Auto (รันทันที) หรือ Manual (ขอยืนยันก่อนรัน)">
+        <button id="mode-auto-btn" class="mode-option selected" type="button">⚡ Auto</button>
+        <button id="mode-manual-btn" class="mode-option" type="button">🖐️ Manual</button>
+      </div>
+    </div>
+    <div class="dev-controls">
+      <button id="show-badges-btn" class="dev-btn inspect-btn" title="แสดง/ซ่อนป้ายหมายเลข #ID บนหน้าเว็บ">🎯 #ID</button>
+      <button id="toggle-dev-btn" class="dev-btn toggle-dev" title="เปิด/ปิด Chrome Dev Mode ด้วยตัวเอง">🛠️ เปิด Dev</button>
+    </div>
+  </div>
+
+  <div class="quick-bar">
+    <button class="chip-btn" data-quick="summarize">📝 สรุปหน้านี้</button>
+    <button class="chip-btn" data-quick="scan-form">🔍 สแกนป้าย #ID ฟอร์ม</button>
+    <button class="chip-btn" data-quick="fill-sample">✍️ ช่วยกรอกฟอร์มในหน้านี้</button>
+  </div>
+
+  <div id="chat-box">
+    <div id="empty-state" class="empty-state">
+      <h3>สวัสดี! ให้ช่วยอะไรในหน้านี้ดี?</h3>
+      <div>
+        • โหมด <b>⚡ Auto</b>: AI เปิดโหมด Dev กรอกฟอร์มให้เอง และ<b>ปิดโหมด Dev อัตโนมัติ</b>เมื่อเสร็จ<br>
+        • โหมด <b>🖐️ Manual</b>: AI เตรียมข้อมูลให้ตรวจสอบและกดยืนยันก่อนกรอกจริง
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div class="toggles-row">
+      <label class="toggle-label" title="ส่งเนื้อหาข้อความของหน้าเว็บปัจจุบันให้ AI">
+        <input type="checkbox" id="include-page" checked> 📄 อ่านหน้าเว็บ
+      </label>
+      <label class="toggle-label" title="สแกนโครงสร้าง Form/Input และอนุญาตให้ AI กรอกฟอร์มได้">
+        <input type="checkbox" id="enable-form-agent" checked> ✍️ กรอกฟอร์ม
+      </label>
+      <label class="toggle-label" title="ปิดโหมด Chrome Dev (แถบ Debugging และกรอบสีส้ม) อัตโนมัติทันทีที่ AI กรอกฟอร์มเสร็จ">
+        <input type="checkbox" id="auto-close-dev" checked> ✅ ปิดโหมด Dev อัตโนมัติเมื่อเสร็จ
+      </label>
+    </div>
+    <div class="input-row">
+      <textarea id="prompt-input" rows="2" placeholder="ถามเกี่ยวกับหน้าเว็บ หรือสั่งกรอกฟอร์ม... (Enter เพื่อส่ง)"></textarea>
+      <button id="send-btn" class="primary-btn">ส่ง</button>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
